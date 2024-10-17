@@ -1,0 +1,194 @@
+CODE OF THIS GAME:
+
+import turtle
+import time
+import random
+
+# Game configuration
+delay = 0.1
+score = 0
+highestscore = 0
+bodies = []
+game_paused = False
+
+# Set up the main screen
+main_screen = turtle.Screen()
+main_screen.title('Snake Game')
+main_screen.bgcolor('lightgreen')  # Gradient-like light color background
+main_screen.setup(width=600, height=600)
+main_screen.tracer(0)  # Disable automatic screen updates to control updates manually
+
+# Background image (you can add a background image here if you like)
+# main_screen.bgpic('background.gif')
+
+# Register shapes (use custom shapes for snake, food, and obstacles)
+main_screen.register_shape('snake_head.gif')  # Custom snake head image
+main_screen.register_shape('snake_body.gif')  # Custom snake body image
+main_screen.register_shape('food.gif')  # Custom food image
+
+# Snake head
+head = turtle.Turtle()
+head.speed(0)
+head.shape('snake_head.gif')  # Use custom snake head image
+head.penup()
+head.goto(0, 0)
+head.direction = 'stop'
+
+# Snake food
+food = turtle.Turtle()
+food.speed(0)
+food.shape('food.gif')  # Use custom food image
+food.penup()
+food.goto(0, 200)
+
+# Obstacles
+obstacles = []
+for _ in range(6):  # Adding 6 random obstacles
+    obstacle = turtle.Turtle()
+    obstacle.shape('square')
+    obstacle.color('brown')
+    obstacle.penup()
+    x = random.randint(-280, 280)
+    y = random.randint(-280, 280)
+    obstacle.goto(x, y)
+    obstacles.append(obstacle)
+
+# Scoreboard
+sb = turtle.Turtle()
+sb.shape('square')
+sb.penup()
+sb.ht()
+sb.color('white')
+sb.goto(0, 260)
+sb.write('Score: {}  Highestscore: {}'.format(score, highestscore), align='center', font=('Arial', 24, 'bold'))
+
+# Function declarations
+def moveup():
+    if head.direction != 'down':
+        head.direction = 'up'
+
+def movedown():
+    if head.direction != 'up':
+        head.direction = 'down'
+
+def moveright():
+    if head.direction != 'left':
+        head.direction = 'right'
+
+def moveleft():
+    if head.direction != 'right':
+        head.direction = 'left'
+
+def movestop():
+    global game_paused
+    if not game_paused:
+        head.direction = 'stop'
+        game_paused = True
+    else:
+        game_paused = False
+
+def move():
+    if not game_paused:
+        if head.direction == 'up':
+            y = head.ycor()
+            head.sety(y + 20)
+        if head.direction == 'down':
+            y = head.ycor()
+            head.sety(y - 20)
+        if head.direction == 'left':
+            x = head.xcor()
+            head.setx(x - 20)
+        if head.direction == 'right':
+            x = head.xcor()
+            head.setx(x + 20)
+
+# Event handling
+main_screen.listen()
+main_screen.onkey(moveup, 'Up')
+main_screen.onkey(movedown, 'Down')
+main_screen.onkey(moveleft, 'Left')
+main_screen.onkey(moveright, 'Right')
+main_screen.onkey(movestop, 'space')
+
+# Game over screen
+def game_over():
+    global score, delay, bodies
+    sb.clear()
+    sb.goto(0, 0)
+    sb.color('red')
+    sb.write('GAME OVER! Press "space" to restart', align='center', font=('Arial', 24, 'bold'))
+    
+    head.goto(0, 0)
+    head.direction = 'stop'
+    
+    for body in bodies:
+        body.ht()
+    bodies.clear()
+    
+    score = 0
+    delay = 0.1
+    main_screen.update()
+    movestop()  # Pause the game
+
+# Main game loop
+while True:
+    main_screen.update()
+
+    if not game_paused:
+        # Boundary checking
+        if head.xcor() > 280 or head.xcor() < -280 or head.ycor() > 280 or head.ycor() < -280:
+            game_over()
+
+        # Check collision with food
+        if head.distance(food) < 20:
+            x = random.randint(-290, 290)
+            y = random.randint(-290, 290)
+            food.goto(x, y)
+            
+            # Add body segment
+            body = turtle.Turtle()
+            body.speed(0)
+            body.penup()
+            body.shape('snake_body.gif')  # Custom snake body image
+            bodies.append(body)
+
+            # Increase the score
+            score += 10
+            delay -= 0.002
+
+            # Update the highest score
+            if score > highestscore:
+                highestscore = score
+
+            # Update scoreboard
+            sb.clear()
+            sb.goto(0, 260)
+            sb.color('white')
+            sb.write('Score: {}  Highestscore: {}'.format(score, highestscore), align='center', font=('Arial', 24, 'bold'))
+
+        # Move the snake body
+        for i in range(len(bodies) - 1, 0, -1):
+            x = bodies[i - 1].xcor()
+            y = bodies[i - 1].ycor()
+            bodies[i].goto(x, y)
+
+        if len(bodies) > 0:
+            x = head.xcor()
+            y = head.ycor()
+            bodies[0].goto(x, y)
+
+        move()
+
+        # Check collision with body
+        for body in bodies:
+            if body.distance(head) < 20:
+                game_over()
+
+        # Check collision with obstacles
+        for obstacle in obstacles:
+            if head.distance(obstacle) < 20:
+                game_over()
+
+    time.sleep(delay)
+
+main_screen.mainloop()
