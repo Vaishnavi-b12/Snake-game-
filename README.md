@@ -18,3 +18,4 @@ Writing clean, maintainable code using functions and object-oriented principles.
 
 HERE IS THE ATTACHED VIDEO OF THE SNAKE GAME
 
+[Snake Game 2024-10-17 17-11-24 (video-converter.com).webm](https://github.com/user-attachments/assets/5876b001-fac2-4f80-8d5a-47a8f84e5437)
